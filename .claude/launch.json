@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "resume-matcher",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/joycai/Developer/resume-matcher", "-l", "3456"],
+      "port": 3456
+    }
+  ]
+}

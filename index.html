@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Matcher — Score Your Resume Against a Job Description</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #f5f4f0;
+            --bg-card: #ffffff;
+            --brand-black: #2b2c2d;
+            --brand-white: #f5f4f0;
+            --text-primary: #2b2c2d;
+            --text-secondary: rgba(43, 44, 45, 0.55);
+            --text-muted: rgba(43, 44, 45, 0.4);
+            --accent-yellow: #f2e96b;
+            --accent-yellow-soft: rgba(242, 233, 107, 0.45);
+            --divider: rgba(43, 44, 45, 0.12);
+            --divider-soft: rgba(43, 44, 45, 0.06);
+            --status-match: #2f6b3d;
+            --status-partial: #8a6a17;
+            --status-gap: #8b2a2a;
+            --status-info: #555;
+            --radius-card: 1.25rem;
+            --radius-pill: 9999px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--bg-page);
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .top-nav { padding: 1.25rem 2.5rem; }
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--divider);
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .nav-logo svg { width: 18px; height: 18px; }
+        .nav-links {
+            display: none;
+            border-left: 1px solid var(--divider);
+        }
+        @media (min-width: 768px) {
+            .nav-links { display: flex; }
+        }
+        .nav-links a {
+            padding: 0.5rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--text-primary); }
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5em;
+            padding: 0.5rem 1.25rem;
+            background: var(--accent-yellow);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius-pill);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-primary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .nav-cta:hover { opacity: 0.85; }
+        .nav-cta::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-primary);
+        }
+
+        /* HERO-INPUT (combined) */
+        .hero-input {
+            padding: 7rem 1.5rem 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) {
+            .hero-input { padding: 8rem 2.5rem 4rem; }
+        }
+        .hero-input h1 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-weight: 400;
+            font-size: 32px;
+            line-height: 1.15;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        @media (min-width: 768px) {
+            .hero-input h1 { font-size: 44px; }
+        }
+        .hero-sub {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            max-width: 500px;
+        }
+        .hero-input .section-grid > div:first-child {
+            position: relative;
+        }
+        @media (min-width: 768px) {
+            .hero-input .section-grid > div:first-child {
+                position: sticky;
+                top: 5rem;
+                align-self: start;
+            }
+        }
+
+        /* SECTIONS */
+        .page-section {
+            border-top: 1px solid var(--divider);
+            padding: 3rem 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) {
+            .page-section { padding: 4rem 2.5rem; }
+        }
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5em;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .section-label::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .section-grid {
+                grid-template-columns: 1fr 1.3fr;
+                gap: 4rem;
+            }
+        }
+        .section-heading {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-weight: 400;
+            font-size: 28px;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+        @media (min-width: 768px) {
+            .section-heading {
+                font-size: 36px;
+                position: sticky;
+                top: 5rem;
+            }
+        }
+
+        /* INPUT CARD */
+        .input-card {
+            background: var(--bg-card);
+            border: 1px solid var(--divider-soft);
+            border-radius: var(--radius-card);
+            padding: 2rem;
+        }
+
+        h2 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-weight: 400;
+            font-size: 22px;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        p, li {
+            max-width: 42em;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .label-mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+        }
+
+        .divider-block {
+            border-bottom: 1px solid var(--divider);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .divider-block:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        /* INPUTS */
+        textarea, input[type="text"] {
+            width: 100%;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-page);
+            border: 1px solid var(--divider);
+            border-radius: 0.75rem;
+            padding: 0.85rem 1rem;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        textarea { min-height: 110px; resize: vertical; }
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--text-primary);
+            background: #fff;
+        }
+        textarea::placeholder, input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        .upload-area {
+            border: 1px dashed var(--divider);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            margin-bottom: 0.5rem;
+            position: relative;
+            background: var(--bg-page);
+        }
+        .upload-area:hover {
+            border-color: var(--text-primary);
+            background: #fff;
+        }
+        .upload-area.has-file {
+            border-color: var(--status-match);
+            background: rgba(47, 107, 61, 0.04);
+            border-style: solid;
+        }
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .upload-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.03em;
+        }
+        .upload-filename {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--status-match);
+            margin-top: 0.5rem;
+            text-transform: none;
+        }
+
+        .or-divider {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin: 0.75rem 0;
+        }
+
+        .url-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .url-row input[type="text"] { flex: 1; }
+        .url-row button.fetch {
+            padding: 0.6rem 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: var(--text-primary);
+            color: var(--bg-page);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .url-row button.fetch:hover { opacity: 0.8; }
+        .url-row button.fetch:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .fetch-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            min-height: 1.1em;
+        }
+        .fetch-status.error { color: var(--status-gap); }
+        .fetch-status.success { color: var(--status-match); }
+        .fetch-status.loading { color: var(--status-partial); }
+
+        /* PRIMARY CTA */
+        .cta-row {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 1.5rem;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5em;
+            background: var(--accent-yellow);
+            color: var(--text-primary);
+            border: 1px solid rgba(0,0,0,0.06);
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius-pill);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .btn-primary::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-primary);
+        }
+        .btn-primary:hover { opacity: 0.85; }
+
+        /* RESULTS */
+        .results { display: none; }
+        .results.visible { display: block; }
+
+        .score-block {
+            margin-bottom: 1rem;
+        }
+        .score-headline {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            border-bottom: 1px solid var(--divider);
+            padding-bottom: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .score-headline-number {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-weight: 400;
+            font-size: 56px;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+        .score-headline-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+        }
+
+        .score-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--divider-soft);
+        }
+        .score-row:last-child { border-bottom: none; }
+        @media (min-width: 600px) {
+            .score-row { grid-template-columns: 1fr auto 80px; align-items: center; gap: 1rem; }
+        }
+        .score-row-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-primary);
+        }
+        .score-row-bar {
+            height: 3px;
+            background: var(--divider-soft);
+            border-radius: 2px;
+            overflow: hidden;
+            min-width: 100%;
+        }
+        @media (min-width: 600px) { .score-row-bar { min-width: 200px; } }
+        .score-row-bar-fill {
+            height: 100%;
+            background: var(--text-primary);
+            transition: width 0.6s ease;
+        }
+        .score-row-value {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-weight: 400;
+            font-size: 18px;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .breakdown-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .breakdown-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            align-items: flex-start;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--divider-soft);
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            max-width: 42em;
+        }
+        .breakdown-item:last-child { border-bottom: none; }
+        .breakdown-icon {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-top: 0.25rem;
+            min-width: 55px;
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-pill);
+            text-align: center;
+        }
+        .breakdown-item.match .breakdown-icon {
+            color: var(--status-match);
+            background: rgba(47, 107, 61, 0.08);
+        }
+        .breakdown-item.partial .breakdown-icon {
+            color: var(--status-partial);
+            background: rgba(138, 106, 23, 0.08);
+        }
+        .breakdown-item.gap .breakdown-icon {
+            color: var(--status-gap);
+            background: rgba(139, 42, 42, 0.08);
+        }
+        .breakdown-item.info .breakdown-icon {
+            color: var(--status-info);
+            background: rgba(85, 85, 85, 0.08);
+        }
+        .breakdown-text { color: var(--text-secondary); }
+        .breakdown-text strong { color: var(--text-primary); font-weight: 500; }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .tag {
+            padding: 0.35rem 0.85rem;
+            border-radius: var(--radius-pill);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            background: var(--bg-page);
+            border: 1px solid var(--divider);
+        }
+        .tag.match { color: var(--status-match); border-color: rgba(47, 107, 61, 0.25); background: rgba(47, 107, 61, 0.05); }
+        .tag.partial { color: var(--status-partial); border-color: rgba(138, 106, 23, 0.25); background: rgba(138, 106, 23, 0.05); }
+        .tag.missing { color: var(--status-gap); border-color: rgba(139, 42, 42, 0.25); background: rgba(139, 42, 42, 0.05); }
+
+        .suggestions-list {
+            list-style: none;
+            padding: 0;
+        }
+        .suggestions-list li {
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--divider-soft);
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            max-width: 42em;
+        }
+        .suggestions-list li:last-child { border-bottom: none; }
+        .suggestions-list li::before {
+            content: "\2192 ";
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .suggestions-list li strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* FOOTER */
+        footer {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-top: 1px solid var(--divider);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .secondary-text { color: var(--text-secondary); }
+
+        /* ABOUT CARD */
+        .about-card {
+            background: var(--bg-card);
+            border: 1px solid var(--divider-soft);
+            border-radius: var(--radius-card);
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div class="nav-left">
+            <a href="/" class="nav-logo" aria-label="Home">
+                <svg viewBox="0 0 100 91.67" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="currentColor">
+                        <rect x="45.83" width="8.33" height="33.33"/>
+                        <rect y="45.83" width="33.33" height="8.33"/>
+                        <rect x="66.67" y="45.83" width="33.33" height="8.33"/>
+                        <polygon points="25 75 75 75 66.67 66.67 33.33 66.67 25 75"/>
+                        <polygon points="16.74 83.34 8.41 91.67 91.11 91.67 82.77 83.34 16.74 83.34"/>
+                    </g>
+                </svg>
+                Resume Matcher
+            </a>
+            <div class="nav-links">
+                <a href="#input">Input</a>
+                <a href="#results">Results</a>
+                <a href="#about">About</a>
+            </div>
+        </div>
+        <a href="#input" class="nav-cta">Get Started</a>
+    </nav>
+
+    <div class="hero-input" id="input">
+        <div class="section-label">Resume Matcher</div>
+        <div class="section-grid">
+            <div>
+                <h1>A precise read on how your resume and LinkedIn align with any job description.</h1>
+                <p class="hero-sub">Score your materials against the role. See what matches, what's missing, and how to close the gap.</p>
+            </div>
+            <div class="input-card">
+                <div class="divider-block">
+                    <h2 style="margin-bottom: 0.75rem;">Resume</h2>
+                    <div class="upload-area" id="pdf-drop">
+                        <div class="upload-text">Click to upload PDF</div>
+                        <div class="upload-filename" id="pdf-filename"></div>
+                        <input type="file" id="pdf-input" accept=".pdf">
+                    </div>
+                    <div class="or-divider">&mdash; or paste &mdash;</div>
+                    <textarea id="resume" placeholder="Paste your resume text here..."></textarea>
+                </div>
+
+                <div class="divider-block">
+                    <h2 style="margin-bottom: 0.75rem;">LinkedIn Profile</h2>
+                    <textarea id="linkedin" placeholder="Paste About, Experience, Skills sections..."></textarea>
+                </div>
+
+                <div class="divider-block">
+                    <h2 style="margin-bottom: 0.75rem;">Job Description</h2>
+                    <div class="url-row">
+                        <input type="text" id="job-url" placeholder="https:// (or paste below)">
+                        <button class="fetch" onclick="fetchJobUrl()" id="fetch-btn">Fetch</button>
+                    </div>
+                    <div class="fetch-status" id="fetch-status"></div>
+                    <textarea id="jobdesc" placeholder="Paste the job description..."></textarea>
+                </div>
+
+                <div class="cta-row">
+                    <button class="btn-primary" id="analyze-btn" onclick="analyze()">
+                        Analyze match &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="results" id="results">
+
+        <div class="page-section" id="results-section">
+            <div class="section-label">Results</div>
+            <div class="section-grid">
+                <div>
+                    <h3 class="section-heading">Scorecard</h3>
+                </div>
+                <div>
+                    <div class="score-block">
+                        <div class="score-headline">
+                            <span class="score-headline-number" id="overall-score">--</span>
+                            <span class="score-headline-label">Overall match</span>
+                        </div>
+                        <div id="score-rows"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-section">
+            <div class="section-label">Breakdown</div>
+            <div class="section-grid">
+                <div>
+                    <h3 class="section-heading">Experience Breakdown</h3>
+                </div>
+                <div>
+                    <ul class="breakdown-list" id="experience-breakdown"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-section">
+            <div class="section-label">Skills</div>
+            <div class="section-grid">
+                <div>
+                    <h3 class="section-heading">Skills &amp; Keywords</h3>
+                </div>
+                <div>
+                    <div class="divider-block">
+                        <h4 class="label-mono" style="margin-bottom: 0.5rem;">Found in your materials</h4>
+                        <div class="tag-list" id="matched-skills"></div>
+                    </div>
+                    <div class="divider-block">
+                        <h4 class="label-mono" style="margin-bottom: 0.5rem;">Missing or weak</h4>
+                        <div class="tag-list" id="missing-skills"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-section">
+            <div class="section-label">Suggestions</div>
+            <div class="section-grid">
+                <div>
+                    <h3 class="section-heading">How To Improve</h3>
+                </div>
+                <div>
+                    <ul class="suggestions-list" id="suggestions-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-section" id="about">
+        <div class="section-label">About</div>
+        <div class="section-grid">
+            <div>
+                <h3 class="section-heading">About</h3>
+            </div>
+            <div class="about-card">
+                <div class="divider-block">
+                    <h2 style="margin-bottom: 0.5rem;">Local-only.</h2>
+                    <p class="secondary-text">Runs in your browser. Nothing is uploaded, logged, or stored.</p>
+                </div>
+                <div class="divider-block">
+                    <h2 style="margin-bottom: 0.5rem;">What it scores.</h2>
+                    <p class="secondary-text">Skills overlap, years of experience and seniority, leadership and impact signals, quantified outcomes, industry fit, and education match.</p>
+                </div>
+                <div class="divider-block">
+                    <h2 style="margin-bottom: 0.5rem;">How to use it.</h2>
+                    <p class="secondary-text">Treat the suggestions as a checklist. Mirror language from the job description where it's true, and quantify results.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Resume Matcher &middot; Local-only analysis &middot; No data leaves your browser
+    </footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        document.getElementById('pdf-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const dropArea = document.getElementById('pdf-drop');
+            const filenameEl = document.getElementById('pdf-filename');
+            filenameEl.textContent = 'Reading...';
+            dropArea.classList.add('has-file');
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(' ') + '\n';
+                }
+                document.getElementById('resume').value = text.trim();
+                filenameEl.textContent = file.name;
+            } catch (err) {
+                filenameEl.textContent = 'Error reading PDF';
+                dropArea.classList.remove('has-file');
+                console.error(err);
+            }
+        });
+
+        async function fetchJobUrl() {
+            const url = document.getElementById('job-url').value.trim();
+            if (!url) return;
+            const statusEl = document.getElementById('fetch-status');
+            const fetchBtn = document.getElementById('fetch-btn');
+            statusEl.textContent = 'Fetching...';
+            statusEl.className = 'fetch-status loading';
+            fetchBtn.disabled = true;
+            try {
+                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const html = await response.text();
+                const text = extractTextFromHtml(html);
+                if (text.length < 50) {
+                    throw new Error('Could not extract enough text. Try pasting manually.');
+                }
+                document.getElementById('jobdesc').value = text;
+                statusEl.textContent = 'Fetched successfully';
+                statusEl.className = 'fetch-status success';
+            } catch (err) {
+                statusEl.textContent = err.message || 'Failed. Try pasting the description manually.';
+                statusEl.className = 'fetch-status error';
+            } finally {
+                fetchBtn.disabled = false;
+            }
+        }
+
+        function extractTextFromHtml(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const removeSelectors = ['script', 'style', 'nav', 'header', 'footer', 'iframe', 'noscript'];
+            for (const sel of removeSelectors) {
+                doc.querySelectorAll(sel).forEach(el => el.remove());
+            }
+            let text = doc.body ? doc.body.innerText || doc.body.textContent : '';
+            text = text.replace(/\n{3,}/g, '\n\n').trim();
+            return text;
+        }
+
+        function analyze() {
+            const resume = document.getElementById('resume').value.trim();
+            const linkedin = document.getElementById('linkedin').value.trim();
+            const jobdesc = document.getElementById('jobdesc').value.trim();
+            if (!jobdesc) { alert('Please paste a job description.'); return; }
+            if (!resume && !linkedin) { alert('Please provide a resume or LinkedIn profile.'); return; }
+
+            const candidateText = (resume + ' ' + linkedin).toLowerCase();
+            const jobText = jobdesc.toLowerCase();
+
+            const keywords = extractKeywords(jobText);
+            const { matched, partial, missing } = matchKeywords(keywords, candidateText);
+
+            const skillScore = keywords.length > 0
+                ? Math.round(((matched.length + partial.length * 0.4) / keywords.length) * 100)
+                : 0;
+
+            const expResult = scoreExperience(candidateText, jobText);
+            const eduScore = scoreEducation(candidateText, jobText);
+            const overallScore = Math.round(skillScore * 0.5 + expResult.score * 0.3 + eduScore * 0.2);
+
+            renderResults(overallScore, skillScore, expResult, eduScore, matched, partial, missing);
+        }
+
+        function extractKeywords(jobText) {
+            const techSkills = [
+                { regex: 'python', label: 'Python' }, { regex: 'javascript', label: 'JavaScript' },
+                { regex: 'typescript', label: 'TypeScript' }, { regex: 'java(?!script)', label: 'Java' },
+                { regex: 'c\\+\\+', label: 'C++' }, { regex: 'c#', label: 'C#' },
+                { regex: 'golang|\\bgo\\b', label: 'Go' }, { regex: 'rust', label: 'Rust' },
+                { regex: 'ruby', label: 'Ruby' }, { regex: 'php', label: 'PHP' },
+                { regex: 'swift', label: 'Swift' }, { regex: 'kotlin', label: 'Kotlin' },
+                { regex: 'scala', label: 'Scala' }, { regex: '\\bsql\\b', label: 'SQL' },
+                { regex: 'nosql', label: 'NoSQL' }, { regex: 'graphql', label: 'GraphQL' },
+                { regex: 'react(?! native)', label: 'React' }, { regex: 'angular', label: 'Angular' },
+                { regex: 'vue', label: 'Vue' }, { regex: 'svelte', label: 'Svelte' },
+                { regex: 'next\\.?js', label: 'Next.js' }, { regex: 'nuxt', label: 'Nuxt' },
+                { regex: 'node\\.?js', label: 'Node.js' }, { regex: 'express', label: 'Express' },
+                { regex: 'django', label: 'Django' }, { regex: 'flask', label: 'Flask' },
+                { regex: 'fastapi', label: 'FastAPI' }, { regex: 'spring', label: 'Spring' },
+                { regex: 'rails', label: 'Rails' }, { regex: 'laravel', label: 'Laravel' },
+                { regex: '\\baws\\b', label: 'AWS' }, { regex: 'azure', label: 'Azure' },
+                { regex: '\\bgcp\\b', label: 'GCP' }, { regex: 'google cloud', label: 'Google Cloud' },
+                { regex: 'docker', label: 'Docker' }, { regex: 'kubernetes|\\bk8s\\b', label: 'Kubernetes' },
+                { regex: 'terraform', label: 'Terraform' }, { regex: 'ci/cd|ci\\/cd', label: 'CI/CD' },
+                { regex: 'jenkins', label: 'Jenkins' }, { regex: 'github actions', label: 'GitHub Actions' },
+                { regex: 'gitlab', label: 'GitLab' }, { regex: 'circleci', label: 'CircleCI' },
+                { regex: 'postgresql|postgres', label: 'PostgreSQL' }, { regex: 'mysql', label: 'MySQL' },
+                { regex: 'mongodb', label: 'MongoDB' }, { regex: 'redis', label: 'Redis' },
+                { regex: 'elasticsearch', label: 'Elasticsearch' }, { regex: 'dynamodb', label: 'DynamoDB' },
+                { regex: 'kafka', label: 'Kafka' }, { regex: 'rabbitmq', label: 'RabbitMQ' },
+                { regex: 'spark', label: 'Spark' }, { regex: 'hadoop', label: 'Hadoop' },
+                { regex: 'airflow', label: 'Airflow' }, { regex: 'machine learning', label: 'Machine Learning' },
+                { regex: 'deep learning', label: 'Deep Learning' }, { regex: '\\bnlp\\b', label: 'NLP' },
+                { regex: 'computer vision', label: 'Computer Vision' }, { regex: 'pytorch', label: 'PyTorch' },
+                { regex: 'tensorflow', label: 'TensorFlow' }, { regex: 'scikit-learn', label: 'scikit-learn' },
+                { regex: 'pandas', label: 'Pandas' }, { regex: 'numpy', label: 'NumPy' },
+                { regex: 'figma', label: 'Figma' }, { regex: 'sketch', label: 'Sketch' },
+                { regex: 'agile', label: 'Agile' }, { regex: 'scrum', label: 'Scrum' },
+                { regex: 'kanban', label: 'Kanban' }, { regex: 'jira', label: 'Jira' },
+                { regex: '\\brest\\b', label: 'REST' }, { regex: '\\bapi\\b', label: 'API' },
+                { regex: 'microservices', label: 'Microservices' }, { regex: 'serverless', label: 'Serverless' },
+                { regex: '\\bgit\\b', label: 'Git' }, { regex: 'linux', label: 'Linux' },
+                { regex: '\\bbash\\b', label: 'Bash' }, { regex: '\\bhtml\\b', label: 'HTML' },
+                { regex: '\\bcss\\b', label: 'CSS' }, { regex: 'sass', label: 'Sass' },
+                { regex: 'tailwind', label: 'Tailwind' }, { regex: 'jest', label: 'Jest' },
+                { regex: 'cypress', label: 'Cypress' }, { regex: 'pytest', label: 'pytest' },
+                { regex: 'data analysis', label: 'Data Analysis' }, { regex: 'data engineering', label: 'Data Engineering' },
+                { regex: '\\betl\\b', label: 'ETL' }, { regex: 'data pipeline', label: 'Data Pipeline' },
+                { regex: 'product management', label: 'Product Management' }, { regex: 'project management', label: 'Project Management' },
+                { regex: 'stakeholder', label: 'Stakeholder Management' }, { regex: 'communication', label: 'Communication' },
+                { regex: 'leadership', label: 'Leadership' }, { regex: 'collaboration', label: 'Collaboration' },
+                { regex: 'cross-functional', label: 'Cross-Functional' }, { regex: 'startup', label: 'Startup' },
+                { regex: 'analytics', label: 'Analytics' }, { regex: 'metrics', label: 'Metrics' },
+                { regex: '\\bseo\\b', label: 'SEO' }, { regex: 'hipaa', label: 'HIPAA' },
+                { regex: 'compliance', label: 'Compliance' }, { regex: 'security', label: 'Security' },
+                { regex: 'oauth', label: 'OAuth' }, { regex: 'authentication', label: 'Authentication' },
+                { regex: '\\bios\\b', label: 'iOS' }, { regex: 'android', label: 'Android' },
+                { regex: 'react native', label: 'React Native' }, { regex: 'flutter', label: 'Flutter' },
+                { regex: 'devops', label: 'DevOps' }, { regex: '\\bsre\\b', label: 'SRE' },
+                { regex: 'monitoring', label: 'Monitoring' }, { regex: 'grafana', label: 'Grafana' },
+                { regex: 'datadog', label: 'Datadog' }, { regex: 'tableau', label: 'Tableau' },
+                { regex: 'power bi', label: 'Power BI' }, { regex: 'looker', label: 'Looker' },
+                { regex: '\\bdbt\\b', label: 'dbt' }, { regex: '\\bllm\\b', label: 'LLM' },
+                { regex: 'generative ai', label: 'Generative AI' }, { regex: 'prompt engineering', label: 'Prompt Engineering' },
+                { regex: '\\brag\\b', label: 'RAG' }, { regex: 'langchain', label: 'LangChain' },
+                { regex: 'openai', label: 'OpenAI' }, { regex: 'blockchain', label: 'Blockchain' },
+                { regex: 'web3', label: 'Web3' }, { regex: '\\bux\\b', label: 'UX' },
+                { regex: '\\bui\\b', label: 'UI' }, { regex: 'user research', label: 'User Research' },
+                { regex: 'wireframe', label: 'Wireframe' }, { regex: 'salesforce', label: 'Salesforce' },
+                { regex: 'hubspot', label: 'HubSpot' }, { regex: 'technical writing', label: 'Technical Writing' },
+            ];
+
+            const found = [];
+            const seen = new Set();
+            for (const skill of techSkills) {
+                const regex = new RegExp('(?:^|\\W)' + skill.regex + '(?:$|\\W)', 'i');
+                if (regex.test(jobText) && !seen.has(skill.label.toLowerCase())) {
+                    seen.add(skill.label.toLowerCase());
+                    found.push(skill.label);
+                }
+            }
+            const ngramPhrases = extractNgramPhrases(jobText);
+            for (const phrase of ngramPhrases) {
+                if (!seen.has(phrase.toLowerCase()) && phrase.length > 3) {
+                    seen.add(phrase.toLowerCase());
+                    found.push(phrase);
+                }
+            }
+            return found;
+        }
+
+        function extractNgramPhrases(text) {
+            const phrases = new Set();
+            const requirementPatterns = /(?:require|must have|experience (?:with|in)|proficien|knowledge of|familiar with|skilled in|expertise in|background in)\s+([^,.\n]+)/gi;
+            let match;
+            while ((match = requirementPatterns.exec(text)) !== null) {
+                const phrase = match[1].trim().toLowerCase().replace(/[^a-z0-9\s\-\/\+\.#]/g, '').trim();
+                if (phrase.length > 2 && phrase.length < 40 && phrase.split(' ').length <= 4) {
+                    phrases.add(phrase);
+                }
+            }
+            return [...phrases];
+        }
+
+        function matchKeywords(keywords, candidateText) {
+            const matched = [], partial = [], missing = [];
+            for (const kw of keywords) {
+                const regex = new RegExp('\\b' + escapeRegex(kw.toLowerCase()) + '\\b', 'i');
+                if (regex.test(candidateText)) {
+                    matched.push(kw);
+                } else {
+                    const words = kw.split(/[\s\-\/]+/);
+                    const someMatch = words.length > 1 && words.some(w =>
+                        w.length > 2 && new RegExp('\\b' + escapeRegex(w.toLowerCase()) + '\\b', 'i').test(candidateText)
+                    );
+                    if (someMatch) partial.push(kw);
+                    else missing.push(kw);
+                }
+            }
+            return { matched, partial, missing };
+        }
+
+        function escapeRegex(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+        function scoreExperience(candidateText, jobText) {
+            const details = [];
+            let factors = 0, factorTotal = 0;
+
+            const yearMatch = jobText.match(/(\d+)\+?\s*years?/i);
+            const candidateYears = candidateText.match(/(\d+)\+?\s*years?/gi);
+            const maxCandidateYears = candidateYears
+                ? Math.max(...candidateYears.map(y => parseInt(y.match(/\d+/)[0])))
+                : null;
+
+            if (yearMatch) {
+                const required = parseInt(yearMatch[1]);
+                if (maxCandidateYears !== null) {
+                    let yearsScore;
+                    if (maxCandidateYears >= required) {
+                        yearsScore = 95;
+                        details.push({ status: 'match', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — you have ${maxCandidateYears}+ years. Strong match.` });
+                    } else if (maxCandidateYears >= required * 0.7) {
+                        yearsScore = 70;
+                        details.push({ status: 'partial', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — you have ${maxCandidateYears} years. Close, but slightly under.` });
+                    } else {
+                        yearsScore = 40;
+                        details.push({ status: 'gap', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — you have ${maxCandidateYears} years. Significant gap.` });
+                    }
+                    factorTotal += yearsScore; factors++;
+                } else {
+                    details.push({ status: 'partial', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — your resume doesn't state total years. Add a phrase like "${required}+ years of experience" if you qualify.` });
+                    factorTotal += 55; factors++;
+                }
+            } else {
+                details.push({ status: 'info', text: `<strong>Years of experience:</strong> Job description doesn't specify a year requirement.` });
+                factorTotal += 70; factors++;
+            }
+
+            const seniorityLevels = [
+                { terms: ['vp', 'vice president', 'head of', 'director'], label: 'Director/VP' },
+                { terms: ['principal', 'staff'], label: 'Principal/Staff' },
+                { terms: ['senior', 'sr.'], label: 'Senior' },
+                { terms: ['lead', 'tech lead'], label: 'Lead' },
+                { terms: ['manager'], label: 'Manager' },
+                { terms: ['junior', 'jr.', 'entry'], label: 'Junior/Entry' },
+            ];
+            const jobSeniority = seniorityLevels.find(l => l.terms.some(t => jobText.includes(t)));
+            const candidateSeniority = seniorityLevels.find(l => l.terms.some(t => candidateText.includes(t)));
+
+            if (jobSeniority) {
+                if (candidateSeniority && candidateSeniority.label === jobSeniority.label) {
+                    details.push({ status: 'match', text: `<strong>Seniority level:</strong> Job is at ${jobSeniority.label} level — your resume reflects this seniority. Direct match.` });
+                    factorTotal += 95; factors++;
+                } else if (candidateSeniority) {
+                    details.push({ status: 'partial', text: `<strong>Seniority level:</strong> Job is ${jobSeniority.label} but your resume reads as ${candidateSeniority.label}. Reframe titles or scope to align.` });
+                    factorTotal += 65; factors++;
+                } else {
+                    details.push({ status: 'gap', text: `<strong>Seniority level:</strong> Job is ${jobSeniority.label} — no matching seniority signal in your resume. Add scope-of-impact language.` });
+                    factorTotal += 50; factors++;
+                }
+            }
+
+            const leadershipPatterns = /\b(led|managed|mentored|coached|directed|supervised|built (?:a |the )?team|team of \d+|people manag|hiring|performance review)/i;
+            const jobNeedsLeadership = /\b(lead|manag|mentor|hir|people manag|team lead|cross-functional|stakeholder)/i.test(jobText);
+            const candidateHasLeadership = leadershipPatterns.test(candidateText);
+
+            if (jobNeedsLeadership) {
+                if (candidateHasLeadership) {
+                    details.push({ status: 'match', text: `<strong>Leadership signals:</strong> Job calls for leadership — your resume shows it (led, managed, mentored).` });
+                    factorTotal += 90; factors++;
+                } else {
+                    details.push({ status: 'gap', text: `<strong>Leadership signals:</strong> Job calls for leadership — add specifics like "led a team of N" or "mentored junior engineers".` });
+                    factorTotal += 50; factors++;
+                }
+            }
+
+            const impactVerbs = ['shipped', 'launched', 'built', 'scaled', 'designed', 'architected', 'drove', 'delivered', 'grew', 'increased', 'reduced', 'improved'];
+            const matchedImpact = impactVerbs.filter(v => new RegExp('\\b' + v + '\\b', 'i').test(candidateText));
+            if (matchedImpact.length >= 4) {
+                details.push({ status: 'match', text: `<strong>Impact verbs:</strong> Strong action language detected (${matchedImpact.slice(0, 5).join(', ')}). Recruiters and ATS reward this.` });
+                factorTotal += 90; factors++;
+            } else if (matchedImpact.length >= 2) {
+                details.push({ status: 'partial', text: `<strong>Impact verbs:</strong> Some action language present (${matchedImpact.join(', ')}). Add more verbs like "shipped", "scaled", "drove" with quantified outcomes.` });
+                factorTotal += 70; factors++;
+            } else {
+                details.push({ status: 'gap', text: `<strong>Impact verbs:</strong> Few action verbs found. Replace passive phrasing with verbs like "shipped", "launched", "scaled", "drove" — paired with metrics.` });
+                factorTotal += 50; factors++;
+            }
+
+            const hasNumbers = /\b\d+(?:[,.]\d+)?\s*(?:%|percent|k|m|million|x|users?|customers?|revenue|hours?|days?)/i.test(candidateText);
+            if (hasNumbers) {
+                details.push({ status: 'match', text: `<strong>Quantified outcomes:</strong> Your resume includes numbers (%, $, users, etc.). Strong signal of measurable impact.` });
+                factorTotal += 90; factors++;
+            } else {
+                details.push({ status: 'gap', text: `<strong>Quantified outcomes:</strong> Few or no metrics found. Add numbers wherever possible — "improved latency by 40%", "scaled to 1M users".` });
+                factorTotal += 55; factors++;
+            }
+
+            const industries = [
+                { terms: ['fintech', 'banking', 'finance', 'payments', 'trading'], label: 'fintech/finance' },
+                { terms: ['healthcare', 'health tech', 'medical', 'clinical', 'hipaa'], label: 'healthcare' },
+                { terms: ['e-commerce', 'ecommerce', 'retail', 'marketplace'], label: 'e-commerce/retail' },
+                { terms: ['saas', 'b2b', 'enterprise software'], label: 'B2B SaaS' },
+                { terms: ['consumer', 'b2c', 'social', 'mobile app'], label: 'consumer/B2C' },
+                { terms: ['edtech', 'education'], label: 'education' },
+                { terms: ['ai', 'machine learning', 'ml platform'], label: 'AI/ML' },
+            ];
+            const jobIndustry = industries.find(i => i.terms.some(t => jobText.includes(t)));
+            if (jobIndustry) {
+                const candidateMatchesIndustry = jobIndustry.terms.some(t => candidateText.includes(t));
+                if (candidateMatchesIndustry) {
+                    details.push({ status: 'match', text: `<strong>Industry experience:</strong> Job is in ${jobIndustry.label} — your resume shows direct experience in this domain.` });
+                    factorTotal += 90; factors++;
+                } else {
+                    details.push({ status: 'gap', text: `<strong>Industry experience:</strong> Job is in ${jobIndustry.label} — no direct domain experience. Highlight any adjacent or transferable work.` });
+                    factorTotal += 55; factors++;
+                }
+            }
+
+            const stageSignals = [
+                { jobTerms: ['startup', 'early stage', 'seed', 'series a', 'series b', 'fast-paced', '0 to 1', 'zero to one'], candidateTerms: ['startup', 'founding', 'series a', 'series b', 'seed', '0 to 1'], label: 'startup/early-stage' },
+                { jobTerms: ['enterprise', 'fortune 500', 'large-scale', 'global'], candidateTerms: ['enterprise', 'fortune', 'global'], label: 'enterprise/large-scale' },
+            ];
+            for (const stage of stageSignals) {
+                const jobWantsStage = stage.jobTerms.some(t => jobText.includes(t));
+                if (jobWantsStage) {
+                    const candidateHasStage = stage.candidateTerms.some(t => candidateText.includes(t));
+                    if (candidateHasStage) {
+                        details.push({ status: 'match', text: `<strong>Company stage:</strong> Job signals ${stage.label} environment — your resume reflects this. Good cultural fit.` });
+                        factorTotal += 90; factors++;
+                    } else {
+                        details.push({ status: 'partial', text: `<strong>Company stage:</strong> Job signals ${stage.label} environment — call out past experience matching that pace or scope.` });
+                        factorTotal += 60; factors++;
+                    }
+                    break;
+                }
+            }
+
+            const score = factors > 0 ? Math.round(factorTotal / factors) : 60;
+            return { score: Math.min(100, score), details };
+        }
+
+        function scoreEducation(candidateText, jobText) {
+            let score = 60;
+            const degrees = [
+                { term: 'phd', alt: 'doctorate', weight: 100 },
+                { term: 'master', alt: 'mba', weight: 85 },
+                { term: 'bachelor', alt: 'b.s.', weight: 70 },
+            ];
+            for (const deg of degrees) {
+                if (jobText.includes(deg.term) || jobText.includes(deg.alt)) {
+                    if (candidateText.includes(deg.term) || candidateText.includes(deg.alt)) {
+                        score = deg.weight;
+                    } else {
+                        score = Math.max(40, deg.weight - 30);
+                    }
+                    break;
+                }
+            }
+            return score;
+        }
+
+        function renderResults(overall, skills, experience, education, matched, partial, missing) {
+            const results = document.getElementById('results');
+            results.classList.add('visible');
+
+            document.getElementById('overall-score').textContent = overall + '%';
+
+            const rowsContainer = document.getElementById('score-rows');
+            rowsContainer.innerHTML = '';
+            const categories = [
+                { label: 'Skills & keywords', score: skills },
+                { label: 'Experience level', score: experience.score },
+                { label: 'Education fit', score: education },
+            ];
+            for (const cat of categories) {
+                rowsContainer.innerHTML += `
+                    <div class="score-row">
+                        <span class="score-row-label">${cat.label}</span>
+                        <div class="score-row-bar"><div class="score-row-bar-fill" style="width:${cat.score}%"></div></div>
+                        <span class="score-row-value">${cat.score}%</span>
+                    </div>`;
+            }
+
+            const expBreakdown = document.getElementById('experience-breakdown');
+            expBreakdown.innerHTML = '';
+            const labelMap = { match: 'Match', partial: 'Partial', gap: 'Gap', info: 'Info' };
+            for (const detail of experience.details) {
+                expBreakdown.innerHTML += `
+                    <li class="breakdown-item ${detail.status}">
+                        <span class="breakdown-icon">${labelMap[detail.status] || '—'}</span>
+                        <span class="breakdown-text">${detail.text}</span>
+                    </li>`;
+            }
+
+            const matchedEl = document.getElementById('matched-skills');
+            matchedEl.innerHTML = '';
+            for (const s of matched) matchedEl.innerHTML += `<span class="tag match">${s}</span>`;
+            for (const s of partial) matchedEl.innerHTML += `<span class="tag partial">${s}</span>`;
+            if (matched.length === 0 && partial.length === 0) {
+                matchedEl.innerHTML = '<span class="secondary-text" style="font-size:0.9rem;">None detected.</span>';
+            }
+
+            const missingEl = document.getElementById('missing-skills');
+            missingEl.innerHTML = '';
+            for (const s of missing) missingEl.innerHTML += `<span class="tag missing">${s}</span>`;
+            if (missing.length === 0) {
+                missingEl.innerHTML = '<span class="secondary-text" style="font-size:0.9rem;">No major gaps detected.</span>';
+            }
+
+            const suggList = document.getElementById('suggestions-list');
+            suggList.innerHTML = '';
+            const suggestions = generateSuggestions(matched, partial, missing);
+            for (const sug of suggestions) suggList.innerHTML += `<li>${sug}</li>`;
+
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function generateSuggestions(matched, partial, missing) {
+            const suggestions = [];
+            if (missing.length > 0) {
+                suggestions.push(`Add these missing keywords if you have relevant experience: <strong>${missing.slice(0, 5).join(', ')}</strong>.`);
+            }
+            if (partial.length > 0) {
+                suggestions.push(`Strengthen partially-matched areas with concrete examples: <strong>${partial.slice(0, 3).join(', ')}</strong>.`);
+            }
+            if (matched.length > 0 && matched.length < 5) {
+                suggestions.push('Your keyword coverage is thin — mirror exact phrasing from the job description where it\'s true.');
+            }
+            if (missing.length > matched.length) {
+                suggestions.push('Consider whether this role is a strong fit — you\'re missing more required skills than you match.');
+            }
+            if (matched.length > missing.length) {
+                suggestions.push('Strong overall match. Focus on quantifying impact in the areas you already cover.');
+            }
+            suggestions.push('Use the exact terms from the job posting (e.g., "cross-functional" not "worked with other teams") to pass ATS filters.');
+            suggestions.push('Add a tailored summary at the top of your resume that mirrors the role\'s key requirements.');
+            return suggestions;
+        }
+    </script>
+</body>
+</html>
