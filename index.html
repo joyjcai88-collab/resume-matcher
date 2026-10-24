@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Matcher — Score Your Resume Against a Job Description</title>
+    <title>Resume Matcher · Score your resume against a job description</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -59,116 +59,131 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* HEADER — breadcrumb wordmark */
-        .top-nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding: 0.9rem 1.25rem;
-            background: var(--paper);
-            border-bottom: 1px solid var(--border);
+        /* Matches joyjcai.com: monogram left, centered wordmark, Menu [M] right, no rule. */
+        .topnav {
+          position: relative;
+          display: flex;
+          align-items: flex-start;
+          min-height: 64px;
+          padding: 20px 24px 18px;
+          background: var(--paper);
+          flex-shrink: 0;
         }
-        @media (min-width: 768px) {
-            .top-nav { padding: 1rem 2.5rem; }
+        .hd-mark { display: block; width: 26px; height: 26px; color: #000; }
+        .hd-word {
+          margin: 0;
+          position: absolute;
+          left: 50%;
+          top: 12px;
+          transform: translateX(-50%);
+          font-family: var(--serif);
+          font-size: 34px;
+          font-weight: 400;
+          line-height: 1.2;
+          letter-spacing: -0.02em;
+          white-space: nowrap;
         }
-        .nav-left {
-            display: flex;
-            align-items: baseline;
-            gap: 0.4rem;
-            min-width: 0;
+        .hd-word a { color: #000; text-decoration: none; }
+        .hd-word a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 5px; }
+        .hd-slash { color: var(--text-muted); }
+        .pill {
+          border: 0;
+          cursor: pointer;
+          padding: 9px 14px;
+          border-radius: 999px;
+          background: var(--pill);
+          color: #000;
+          font-family: var(--mono);
+          font-size: 13px;
+          line-height: 1;
+          letter-spacing: 0;
+          text-transform: none;
+          white-space: nowrap;
+          transition: background 0.2s ease;
         }
-        .nav-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            font-family: var(--serif);
-            font-weight: 400;
-            font-size: 21px;
-            line-height: 1;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-            text-decoration: none;
-        }
-        .nav-logo svg { width: 22px; height: 22px; flex: none; }
-        .nav-logo:hover .wordmark-owner { color: var(--accent); }
-        .wordmark-owner { transition: color 0.15s; }
-        .wordmark-sep,
-        .wordmark-tool {
-            font-family: var(--serif);
-            font-weight: 400;
-            font-size: 21px;
-            line-height: 1;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-        }
-        .wordmark-sep { color: var(--text-muted); }
+        .pill:hover { background: var(--pill-hi); }
+        .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .hd-menu { margin-left: auto; }
 
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
+        /* Menu overlay, as on joyjcai.com */
+        .site-menu { position: fixed; inset: 0; z-index: 1100; background: linear-gradient(to right, rgba(255,255,255,0.55), rgba(255,255,255,0.92) 60%); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s; }
+        .site-menu.is-open { opacity: 1; visibility: visible; }
+        .menu-close { position: absolute; top: 20px; right: 24px; font-size: 17px; padding: 7px 13px; }
+        .menu-nav { position: absolute; top: 92px; right: 96px; display: flex; flex-direction: column; gap: 14px; }
+        .menu-nav > a { font-family: var(--serif); font-size: 26px; letter-spacing: -0.015em; color: #000; text-decoration: none; transform: translateY(6px); opacity: 0; transition: opacity 0.35s ease, transform 0.35s ease; }
+        .site-menu.is-open .menu-nav > a { opacity: 1; transform: none; }
+        .menu-nav > a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 5px; }
+        .menu-sub { margin-top: 26px; opacity: 0; transition: opacity 0.35s ease 0.26s; }
+        .site-menu.is-open .menu-sub { opacity: 1; }
+        .menu-sub a { font-family: var(--mono); font-size: 12.5px; color: var(--text-secondary); text-decoration: none; }
+        .menu-sub a:hover { color: #000; }
+
+        /* Bottom bar, as on joyjcai.com. Clicks only here, so a stray key never leaves a half-filled form. */
+        body { padding-bottom: 64px; }
+        body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 64px; background: #fff; z-index: 139; pointer-events: none; }
+        .ft-pages { position: fixed; left: 24px; bottom: 22px; display: flex; gap: 14px; font-family: var(--mono); font-size: 13px; z-index: 140; }
+        .ft-pages a { color: #000; position: relative; text-decoration: none; }
+        .ft-pages a:hover { color: var(--text-secondary); }
+        .pg-name { color: var(--text-secondary); }
+        .pg-icon { display: none; }
+        .pg-icon svg { width: 13px; height: 13px; display: block; }
+        @media (max-width: 1600px) {
+          .pg-name { position: absolute; left: 0; bottom: calc(100% + 6px); font-size: 11.5px; white-space: nowrap; padding: 2px 6px; margin-left: -6px; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+          .ft-pages a:hover .pg-name, .ft-pages a:focus-visible .pg-name { opacity: 1; }
+          .ft-pages a { display: inline-flex; align-items: center; padding: 12px 6px; margin: -12px -6px; }
+          .pg-icon { display: block; color: var(--text-secondary); }
         }
-        .nav-links {
-            display: none;
-            gap: 1.25rem;
+        .ft-find { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 140; }
+        .ft-clock { position: fixed; right: 24px; bottom: 24px; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em; color: var(--text-muted); z-index: 140; }
+        .find { position: fixed; inset: 0; z-index: 1200; background: rgba(255,255,255,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; visibility: hidden; transition: opacity 0.25s ease, visibility 0.25s; display: flex; justify-content: center; align-items: flex-start; padding-top: 18vh; }
+        .find.is-open { opacity: 1; visibility: visible; }
+        .find-panel { width: min(540px, calc(100vw - 48px)); background: #fff; border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0,0,0,0.09); }
+        .find-input { width: 100%; border: none; border-bottom: 1px solid var(--border); outline: none; font-family: var(--mono); font-size: 14px; padding: 18px 20px; background: transparent; color: #000; }
+        .find-input::placeholder { color: var(--text-muted); }
+        .find-results { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
+        .find-results li { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 20px; cursor: pointer; font-family: var(--serif); font-size: 16px; letter-spacing: -0.01em; }
+        .find-results li.is-sel { background: var(--tile); }
+        .find-results .fr-type, .find-results .find-empty { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--text-muted); }
+        .find-results .find-empty { font-size: 12px; cursor: default; }
+        @media (prefers-reduced-motion: reduce) { .site-menu, .menu-nav > a, .menu-sub, .find, .pg-name { transition: none; } }
+        @media (max-width: 640px) {
+          .topnav { padding: 16px 16px 14px; min-height: 56px; }
+          .hd-word { font-size: 22px; top: 18px; }
+          .key-hint { display: none; }
+          .menu-nav { right: 24px; }
+          .ft-clock { display: none; }
+          .ft-pages { left: 16px; }
+          .ft-pages a { padding: 14px 5px; margin: -14px -5px; }
+          .pg-icon svg { width: 16px; height: 16px; }
+          .ft-find { left: auto; right: 16px; transform: none; }
+          body::after { border-top: 1px solid var(--border); }
         }
-        @media (min-width: 768px) {
-            .nav-links { display: flex; }
+        /* Narrow phones: the title sits after the monogram so it clears the Menu button */
+        @media (max-width: 430px) {
+          .hd-word { left: 52px; transform: none; font-size: clamp(15px, 5.2vw, 22px); top: calc(32px - 0.6em); }
+          .hd-menu { padding: 8px 11px; font-size: 12px; }
         }
-        .nav-links a {
-            font-family: var(--mono);
-            font-size: 10px;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.15s;
-        }
-        .nav-links a:hover { color: var(--text-primary); }
-        .nav-cta {
-            display: inline-flex;
-            align-items: center;
-            background: var(--brand-black);
-            color: var(--brand-white);
-            border: none;
-            border-radius: var(--radius-pill);
-            padding: 9px 20px;
-            font-family: var(--mono);
-            font-weight: 400;
-            font-size: 10.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            text-decoration: none;
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-        .nav-cta:hover { opacity: 0.82; }
 
         /* HERO-INPUT (combined) */
         .hero-input {
-            padding: 3rem 1.25rem 3rem;
-            max-width: 1200px;
+            padding: 1.5rem 1rem 3rem;
+            max-width: calc(1180px + 48px);
             margin: 0 auto;
         }
         @media (min-width: 768px) {
-            .hero-input { padding: 4rem 2.5rem 4rem; }
+            .hero-input { padding: 1.5rem 24px 4rem; }
         }
         .hero-input h1 {
             font-family: var(--serif);
             font-weight: 400;
             font-size: 32px;
-            line-height: 1.15;
-            letter-spacing: -0.025em;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
             color: var(--text-primary);
             margin-bottom: 0.85rem;
         }
         @media (min-width: 768px) {
-            .hero-input h1 { font-size: 44px; }
+            .hero-input h1 { font-size: 52px; }
         }
         .hero-sub {
             font-family: var(--serif);
@@ -183,7 +198,7 @@
         @media (min-width: 768px) {
             .hero-input .section-grid > div:first-child {
                 position: sticky;
-                top: 5.5rem;
+                top: 1.5rem;
                 align-self: start;
             }
         }
@@ -191,12 +206,12 @@
         /* SECTIONS */
         .page-section {
             border-top: 1px solid var(--border);
-            padding: 3rem 1.25rem;
-            max-width: 1200px;
+            padding: 3rem 1rem;
+            max-width: calc(1180px + 48px);
             margin: 0 auto;
         }
         @media (min-width: 768px) {
-            .page-section { padding: 4rem 2.5rem; }
+            .page-section { padding: 4rem 24px; }
         }
         .section-label {
             display: block;
@@ -232,20 +247,12 @@
             .section-heading {
                 font-size: 34px;
                 position: sticky;
-                top: 5.5rem;
+                top: 1.5rem;
             }
         }
 
         /* INPUT CARD */
-        .input-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-card);
-            padding: 1.75rem;
-        }
-        @media (min-width: 768px) {
-            .input-card { padding: 2rem; }
-        }
+        .input-card { background: var(--bg-card); }
 
         h2 {
             font-family: var(--serif);
@@ -255,7 +262,15 @@
             letter-spacing: -0.02em;
             color: var(--text-primary);
         }
-        .field-heading { margin-bottom: 0.75rem; }
+        .field-heading {
+            margin-bottom: 0.75rem;
+            font-family: var(--mono);
+            font-size: 10px;
+            line-height: 1.4;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
 
         p, li {
             max-width: 42em;
@@ -374,9 +389,8 @@
             padding: 9px 20px;
             font-family: var(--mono);
             font-weight: 400;
-            font-size: 10.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-size: 13px;
+            letter-spacing: 0;
             background: var(--pill);
             color: var(--text-primary);
             border: none;
@@ -415,10 +429,9 @@
             padding: 11px 26px;
             border-radius: var(--radius-pill);
             font-family: var(--mono);
-            font-size: 10.5px;
+            font-size: 13px;
             font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0;
             cursor: pointer;
             text-decoration: none;
             transition: opacity 0.15s;
@@ -611,7 +624,7 @@
             text-align: center;
             padding: 2rem 1.25rem;
             border-top: 1px solid var(--border);
-            max-width: 1200px;
+            max-width: calc(1180px + 48px);
             margin: 0 auto;
         }
 
@@ -643,19 +656,10 @@
             .score-row-value { grid-column: 2; grid-row: 1; font-size: 16px; }
             .score-row-bar { grid-column: 1 / -1; grid-row: 2; }
         }
-        @media (max-width: 559px) {
-            .wordmark-owner, .wordmark-sep { display: none; }
-            .nav-logo { gap: 0; }
-        }
         @media (max-width: 420px) {
-            .top-nav { padding: 0.8rem 1rem; }
-            .nav-logo, .wordmark-tool { font-size: 18px; }
-            .nav-logo svg { width: 19px; height: 19px; }
-            .nav-cta { padding: 8px 14px; font-size: 9.5px; letter-spacing: 0.06em; }
             .hero-input { padding: 2.25rem 1rem 2.5rem; }
             .hero-input h1 { font-size: 27px; }
             .page-section { padding: 2.25rem 1rem; }
-            .input-card { padding: 1.25rem; border-left: none; border-right: none; margin: 0 -1rem; }
             .section-heading { font-size: 24px; }
             .score-headline-number { font-size: 44px; }
             .score-headline { flex-direction: column; gap: 0.35rem; }
@@ -669,30 +673,37 @@
 </head>
 <body>
 
-    <header class="top-nav">
-        <div class="nav-left">
-            <a href="https://joyjcai.com" class="nav-logo" aria-label="Joy Cai">
-                <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" width="22" height="22" xmlns="http://www.w3.org/2000/svg"><path d="M4 22 L4 4 L22 13 Z"/><path d="M8 18.5 L8 7.5 L18.5 13 Z"/></svg>
-                <span class="wordmark-owner">Joy Cai</span>
-            </a>
-            <span class="wordmark-sep">/</span>
-            <span class="wordmark-tool">Resume Matcher</span>
-        </div>
-        <div class="nav-right">
-            <div class="nav-links">
-                <a href="#input">Input</a>
-                <a href="#results">Results</a>
-            </div>
-            <a href="#input" class="nav-cta">Get Started</a>
-        </div>
+    <!-- Header: the same as the rest of joyjcai.com -->
+    <header class="topnav">
+      <a class="hd-mark" href="https://joyjcai.com" aria-label="Joy Cai home">
+        <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><text x="13" y="19" text-anchor="middle" font-family="Georgia, 'Times New Roman', Times, serif" font-size="18" letter-spacing="-1.2"><tspan fill="currentColor">J</tspan><tspan fill="#00b6c4">C</tspan></text></svg>
+      </a>
+      <div class="hd-word"><a href="https://joyjcai.com">Joy&nbsp;Cai</a><span class="hd-slash">&thinsp;/&thinsp;</span><a href="/">Resume Matcher</a></div>
+      <button type="button" class="pill hd-menu" id="btnMenu" aria-label="Open menu" aria-controls="siteMenu" aria-expanded="false">Menu<span class="key-hint">&nbsp;[M]</span></button>
     </header>
 
+    <!-- The same menu as the rest of joyjcai.com -->
+    <div class="site-menu" id="siteMenu" aria-hidden="true">
+      <button type="button" class="pill menu-close" id="btnMenuClose" aria-label="Close menu">&times;</button>
+      <nav class="menu-nav" aria-label="joyjcai.com">
+        <a href="https://joyjcai.com/">Home</a>
+        <a href="https://joyjcai.com/experience">Experience</a>
+        <a href="https://joyjcai.com/advisory">Advisory</a>
+        <a href="https://joyjcai.com/tools">Tools</a>
+        <a href="https://joyjcai.com/blog">Blog</a>
+        <a href="https://joyjcai.com/adoptdontshop">Adopt Don&#39;t Shop</a>
+        <a href="https://joyjcai.com/contact">Contact</a>
+        <div class="menu-sub">
+          <a href="https://www.linkedin.com/in/joycai12/" target="_blank" rel="noopener">LinkedIn &nearr;</a>
+        </div>
+      </nav>
+    </div>
+
     <div class="hero-input" id="input">
-        <div class="section-label">Resume Matcher</div>
         <div class="section-grid">
             <div>
-                <h1>A precise read on how your resume and LinkedIn align with any job description.</h1>
-                <p class="hero-sub">Score your materials against the role. See what matches, what's missing, and how to close the gap.</p>
+                <h1>Resume Matcher</h1>
+                <p class="hero-sub">A precise read on how your resume and LinkedIn align with any job description. Score your materials against the role. See what matches, what's missing, and how to close the gap.</p>
 
                 <div class="about-inline" id="about">
                     <div class="about-item">
@@ -717,7 +728,7 @@
                         <div class="upload-filename" id="pdf-filename"></div>
                         <input type="file" id="pdf-input" accept=".pdf">
                     </div>
-                    <div class="or-divider">&mdash; or paste &mdash;</div>
+                    <div class="or-divider">Or paste</div>
                     <textarea id="resume" placeholder="Paste your resume text here..."></textarea>
                 </div>
 
@@ -1042,17 +1053,17 @@
                     let yearsScore;
                     if (maxCandidateYears >= required) {
                         yearsScore = 95;
-                        details.push({ status: 'match', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — you have ${maxCandidateYears}+ years. Strong match.` });
+                        details.push({ status: 'match', text: `<strong>Years of experience:</strong> Job requires ${required}+ years; you have ${maxCandidateYears}+ years. Strong match.` });
                     } else if (maxCandidateYears >= required * 0.7) {
                         yearsScore = 70;
-                        details.push({ status: 'partial', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — you have ${maxCandidateYears} years. Close, but slightly under.` });
+                        details.push({ status: 'partial', text: `<strong>Years of experience:</strong> Job requires ${required}+ years; you have ${maxCandidateYears} years. Close, but slightly under.` });
                     } else {
                         yearsScore = 40;
-                        details.push({ status: 'gap', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — you have ${maxCandidateYears} years. Significant gap.` });
+                        details.push({ status: 'gap', text: `<strong>Years of experience:</strong> Job requires ${required}+ years; you have ${maxCandidateYears} years. Significant gap.` });
                     }
                     factorTotal += yearsScore; factors++;
                 } else {
-                    details.push({ status: 'partial', text: `<strong>Years of experience:</strong> Job requires ${required}+ years — your resume doesn't state total years. Add a phrase like "${required}+ years of experience" if you qualify.` });
+                    details.push({ status: 'partial', text: `<strong>Years of experience:</strong> Job requires ${required}+ years; your resume doesn't state total years. Add a phrase like "${required}+ years of experience" if you qualify.` });
                     factorTotal += 55; factors++;
                 }
             } else {
@@ -1073,13 +1084,13 @@
 
             if (jobSeniority) {
                 if (candidateSeniority && candidateSeniority.label === jobSeniority.label) {
-                    details.push({ status: 'match', text: `<strong>Seniority level:</strong> Job is at ${jobSeniority.label} level — your resume reflects this seniority. Direct match.` });
+                    details.push({ status: 'match', text: `<strong>Seniority level:</strong> Job is at ${jobSeniority.label} level; your resume reflects this seniority. Direct match.` });
                     factorTotal += 95; factors++;
                 } else if (candidateSeniority) {
                     details.push({ status: 'partial', text: `<strong>Seniority level:</strong> Job is ${jobSeniority.label} but your resume reads as ${candidateSeniority.label}. Reframe titles or scope to align.` });
                     factorTotal += 65; factors++;
                 } else {
-                    details.push({ status: 'gap', text: `<strong>Seniority level:</strong> Job is ${jobSeniority.label} — no matching seniority signal in your resume. Add scope-of-impact language.` });
+                    details.push({ status: 'gap', text: `<strong>Seniority level:</strong> Job is ${jobSeniority.label}; no matching seniority signal in your resume. Add scope-of-impact language.` });
                     factorTotal += 50; factors++;
                 }
             }
@@ -1090,10 +1101,10 @@
 
             if (jobNeedsLeadership) {
                 if (candidateHasLeadership) {
-                    details.push({ status: 'match', text: `<strong>Leadership signals:</strong> Job calls for leadership — your resume shows it (led, managed, mentored).` });
+                    details.push({ status: 'match', text: `<strong>Leadership signals:</strong> Job calls for leadership; your resume shows it (led, managed, mentored).` });
                     factorTotal += 90; factors++;
                 } else {
-                    details.push({ status: 'gap', text: `<strong>Leadership signals:</strong> Job calls for leadership — add specifics like "led a team of N" or "mentored junior engineers".` });
+                    details.push({ status: 'gap', text: `<strong>Leadership signals:</strong> Job calls for leadership; add specifics like "led a team of N" or "mentored junior engineers".` });
                     factorTotal += 50; factors++;
                 }
             }
@@ -1107,7 +1118,7 @@
                 details.push({ status: 'partial', text: `<strong>Impact verbs:</strong> Some action language present (${matchedImpact.join(', ')}). Add more verbs like "shipped", "scaled", "drove" with quantified outcomes.` });
                 factorTotal += 70; factors++;
             } else {
-                details.push({ status: 'gap', text: `<strong>Impact verbs:</strong> Few action verbs found. Replace passive phrasing with verbs like "shipped", "launched", "scaled", "drove" — paired with metrics.` });
+                details.push({ status: 'gap', text: `<strong>Impact verbs:</strong> Few action verbs found. Replace passive phrasing with verbs like "shipped", "launched", "scaled", "drove", paired with metrics.` });
                 factorTotal += 50; factors++;
             }
 
@@ -1116,7 +1127,7 @@
                 details.push({ status: 'match', text: `<strong>Quantified outcomes:</strong> Your resume includes numbers (%, $, users, etc.). Strong signal of measurable impact.` });
                 factorTotal += 90; factors++;
             } else {
-                details.push({ status: 'gap', text: `<strong>Quantified outcomes:</strong> Few or no metrics found. Add numbers wherever possible — "improved latency by 40%", "scaled to 1M users".` });
+                details.push({ status: 'gap', text: `<strong>Quantified outcomes:</strong> Few or no metrics found. Add numbers wherever possible: "improved latency by 40%", "scaled to 1M users".` });
                 factorTotal += 55; factors++;
             }
 
@@ -1133,10 +1144,10 @@
             if (jobIndustry) {
                 const candidateMatchesIndustry = jobIndustry.terms.some(t => candidateText.includes(t));
                 if (candidateMatchesIndustry) {
-                    details.push({ status: 'match', text: `<strong>Industry experience:</strong> Job is in ${jobIndustry.label} — your resume shows direct experience in this domain.` });
+                    details.push({ status: 'match', text: `<strong>Industry experience:</strong> Job is in ${jobIndustry.label}; your resume shows direct experience in this domain.` });
                     factorTotal += 90; factors++;
                 } else {
-                    details.push({ status: 'gap', text: `<strong>Industry experience:</strong> Job is in ${jobIndustry.label} — no direct domain experience. Highlight any adjacent or transferable work.` });
+                    details.push({ status: 'gap', text: `<strong>Industry experience:</strong> Job is in ${jobIndustry.label}; no direct domain experience. Highlight any adjacent or transferable work.` });
                     factorTotal += 55; factors++;
                 }
             }
@@ -1150,10 +1161,10 @@
                 if (jobWantsStage) {
                     const candidateHasStage = stage.candidateTerms.some(t => candidateText.includes(t));
                     if (candidateHasStage) {
-                        details.push({ status: 'match', text: `<strong>Company stage:</strong> Job signals ${stage.label} environment — your resume reflects this. Good cultural fit.` });
+                        details.push({ status: 'match', text: `<strong>Company stage:</strong> Job signals ${stage.label} environment; your resume reflects this. Good cultural fit.` });
                         factorTotal += 90; factors++;
                     } else {
-                        details.push({ status: 'partial', text: `<strong>Company stage:</strong> Job signals ${stage.label} environment — call out past experience matching that pace or scope.` });
+                        details.push({ status: 'partial', text: `<strong>Company stage:</strong> Job signals ${stage.label} environment; call out past experience matching that pace or scope.` });
                         factorTotal += 60; factors++;
                     }
                     break;
@@ -1212,7 +1223,7 @@
             for (const detail of experience.details) {
                 expBreakdown.innerHTML += `
                     <li class="breakdown-item ${detail.status}">
-                        <span class="breakdown-icon">${labelMap[detail.status] || '—'}</span>
+                        <span class="breakdown-icon">${labelMap[detail.status] || '·'}</span>
                         <span class="breakdown-text">${detail.text}</span>
                     </li>`;
             }
@@ -1249,10 +1260,10 @@
                 suggestions.push(`Strengthen partially-matched areas with concrete examples: <strong>${partial.slice(0, 3).join(', ')}</strong>.`);
             }
             if (matched.length > 0 && matched.length < 5) {
-                suggestions.push('Your keyword coverage is thin — mirror exact phrasing from the job description where it\'s true.');
+                suggestions.push('Your keyword coverage is thin; mirror exact phrasing from the job description where it\'s true.');
             }
             if (missing.length > matched.length) {
-                suggestions.push('Consider whether this role is a strong fit — you\'re missing more required skills than you match.');
+                suggestions.push('Consider whether this role is a strong fit; you\'re missing more required skills than you match.');
             }
             if (matched.length > missing.length) {
                 suggestions.push('Strong overall match. Focus on quantifying impact in the areas you already cover.');
@@ -1262,5 +1273,137 @@
             return suggestions;
         }
     </script>
+  <!-- Bottom bar and Find: the same as the rest of joyjcai.com -->
+  <nav class="ft-pages" aria-label="joyjcai.com pages">
+    <a href="https://joyjcai.com/" aria-label="Home"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 7.5 8 3l5.5 4.5V13h-11z"/><path d="M6.5 13V9.5h3V13"/></svg></span><span class="pg-name">Home</span></a>
+    <a href="https://joyjcai.com/experience" aria-label="Experience"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="12" height="8"/><path d="M6 5V3h4v2M2 9h12"/></svg></span><span class="pg-name">Experience</span></a>
+    <a href="https://joyjcai.com/advisory" aria-label="Advisory"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="2.5" width="4.5" height="4.5"/><rect x="9" y="2.5" width="4.5" height="4.5"/><rect x="2.5" y="9" width="4.5" height="4.5"/><rect x="9" y="9" width="4.5" height="4.5"/></svg></span><span class="pg-name">Advisory</span></a>
+    <a href="https://joyjcai.com/tools" aria-label="Tools"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5.5 2.5 2.5 5.5l3 3M10.5 7.5l3 3-3 3M9.5 2.5l-3 11"/></svg></span><span class="pg-name">Tools</span></a>
+    <a href="https://joyjcai.com/blog" aria-label="Blog"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z"/><path d="M9.5 4l2.5 2.5"/></svg></span><span class="pg-name">Blog</span></a>
+    <a href="https://joyjcai.com/adoptdontshop" aria-label="Adopt Don&#39;t Shop"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9C7 5.6 9.4 4 12 4s5 1.6 5 5v4c0 4-2.4 6.5-5 6.5S7 17 7 13Z"/><path d="M7.2 7.8C4.6 7.4 3 9.6 3.5 13c.3 2 1.9 2.2 3.5.6"/><path d="M16.8 7.8c2.6-.4 4.2 1.8 3.7 5.2-.3 2-1.9 2.2-3.5.6"/><circle cx="10" cy="11" r=".8" fill="currentColor" stroke="none"/><circle cx="14" cy="11" r=".8" fill="currentColor" stroke="none"/><path d="M11 14.4h2l-1 1.2Z" fill="currentColor"/></svg></span><span class="pg-name">Adopt Don&#39;t Shop</span></a>
+    <a href="https://joyjcai.com/contact" aria-label="Contact"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="3.5" width="12" height="9"/><path d="M2 4l6 5 6-5"/></svg></span><span class="pg-name">Contact</span></a>
+  </nav>
+  <button type="button" class="pill ft-find" id="btnFind">Find<span class="key-hint">&nbsp;[F]</span></button>
+  <div class="ft-clock" id="ftClock"></div>
+  <div class="find" id="find" aria-hidden="true">
+    <div class="find-panel" role="dialog" aria-label="Find on joyjcai.com">
+      <input class="find-input" id="findInput" type="text" placeholder="Type to search…" autocomplete="off" spellcheck="false" aria-label="Search joyjcai.com">
+      <ul class="find-results" id="findResults" role="listbox"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Site chrome shared with joyjcai.com: menu [M], Find [F] and the Pacific clock.
+    // No number-key page jumps here, so a stray key never leaves a half-filled form.
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+      const menu = $('siteMenu');
+      const setMenu = (open) => {
+        menu.classList.toggle('is-open', open);
+        menu.setAttribute('aria-hidden', String(!open));
+        $('btnMenu').setAttribute('aria-expanded', String(open));
+        (open ? $('btnMenuClose') : $('btnMenu')).focus();
+      };
+      $('btnMenu').addEventListener('click', () => setMenu(true));
+      $('btnMenuClose').addEventListener('click', () => setMenu(false));
+      menu.addEventListener('click', (e) => { if (e.target === menu) setMenu(false); });
+
+      const tick = () => {
+        $('ftClock').textContent = `(PT) ${new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
+      };
+      tick();
+      setInterval(tick, 1000);
+
+      const SITE = 'https://joyjcai.com';
+      const INDEX = [
+        { t: 'Home', type: 'PAGE', url: `${SITE}/`, text: 'bio about joy cai' },
+        { t: 'Experience', type: 'PAGE', url: `${SITE}/experience`, text: 'experience log resume roles work history education' },
+        { t: 'Advisory', type: 'PAGE', url: `${SITE}/advisory`, text: 'advisory advisor companies portfolio' },
+        { t: 'Tools', type: 'PAGE', url: `${SITE}/tools`, text: 'tools projects built founders investors' },
+        { t: 'Blog', type: 'PAGE', url: `${SITE}/blog`, text: 'blog writing posts deep dives pitch notes' },
+        { t: "Adopt Don't Shop", type: 'PAGE', url: `${SITE}/adoptdontshop`, text: 'adopt dont shop pets dogs cats rabbits shelters rescues animals luke' },
+        { t: 'Contact', type: 'PAGE', url: `${SITE}/contact`, text: 'contact email message form consulting' },
+        { t: 'North Court', type: 'SERVICE', url: 'https://www.northcourtcapital.com/', newTab: true },
+        { t: 'Flagler Health', type: 'COMPANY', url: 'https://www.flaglerhealth.io/', newTab: true },
+        { t: 'Quina Health', type: 'COMPANY', url: 'https://quinahealth-archive.joyjcai.com/', newTab: true },
+        { t: 'Solis Health', type: 'COMPANY', url: 'https://solishealthwellness-archive.webflow.io/', newTab: true },
+        { t: 'Hustle Fund', type: 'COMPANY', url: 'https://www.hustlefund.vc/', newTab: true },
+        { t: 'LinkedIn', type: 'LINK', url: 'https://www.linkedin.com/in/joycai12/', newTab: true },
+      ];
+      const find = $('find'), input = $('findInput'), list = $('findResults');
+      let sel = 0, shown = [];
+      function render(q) {
+        const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if (!terms.length) shown = INDEX.filter((i) => i.type === 'PAGE' || i.t === 'North Court');
+        else {
+          // every word must appear somewhere; title matches rank above content matches
+          const score = (i) => {
+            const title = i.t.toLowerCase();
+            const hay = `${title} ${i.type.toLowerCase()} ${(i.text || '').toLowerCase()}`;
+            if (!terms.every((w) => hay.includes(w))) return -1;
+            return terms.every((w) => title.includes(w)) ? (title.startsWith(terms[0]) ? 3 : 2) : 1;
+          };
+          shown = INDEX.map((i) => [i, score(i)]).filter(([, sc]) => sc > 0).sort((x, y) => y[1] - x[1]).map(([i]) => i);
+        }
+        sel = 0;
+        list.innerHTML = shown.length
+          ? shown.map((i, n) => `<li role="option" data-n="${n}"${n ? '' : ' class="is-sel" aria-selected="true"'}><span>${esc(i.t)}</span><span class="fr-type">${i.type}</span></li>`).join('')
+          : '<li class="find-empty">NO RESULTS</li>';
+      }
+      function paint() {
+        list.querySelectorAll('li[data-n]').forEach((li) => {
+          const on = +li.dataset.n === sel;
+          li.classList.toggle('is-sel', on);
+          li.setAttribute('aria-selected', String(on));
+          if (on) li.scrollIntoView({ block: 'nearest' });
+        });
+      }
+      function pick(item) {
+        closeFind();
+        if (item.newTab) window.open(item.url, '_blank', 'noopener');
+        else location.href = item.url;
+      }
+      function openFind() {
+        find.classList.add('is-open');
+        find.setAttribute('aria-hidden', 'false');
+        input.value = '';
+        render('');
+        setTimeout(() => input.focus(), 50);
+      }
+      function closeFind() {
+        find.classList.remove('is-open');
+        find.setAttribute('aria-hidden', 'true');
+        input.blur();
+      }
+      $('btnFind').addEventListener('click', openFind);
+      find.addEventListener('click', (e) => { if (e.target === find) closeFind(); });
+      input.addEventListener('input', () => render(input.value));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(shown.length - 1, sel + 1); paint(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); paint(); }
+        else if (e.key === 'Enter' && shown[sel]) pick(shown[sel]);
+      });
+      list.addEventListener('click', (e) => {
+        const li = e.target.closest('li[data-n]');
+        if (li) pick(shown[+li.dataset.n]);
+      });
+      list.addEventListener('mousemove', (e) => {
+        const li = e.target.closest('li[data-n]');
+        if (li && +li.dataset.n !== sel) { sel = +li.dataset.n; paint(); }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const k = e.key.toLowerCase();
+        if (find.classList.contains('is-open')) { if (k === 'escape') closeFind(); return; }
+        if (menu.classList.contains('is-open')) { if (k === 'escape' || k === 'm') setMenu(false); return; }
+        if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+        if (k === 'm') setMenu(true);
+        else if (k === 'f') { e.preventDefault(); openFind(); }
+      });
+    })();
+  </script>
 </body>
 </html>
